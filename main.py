@@ -8,7 +8,7 @@ import torchtext.datasets as datasets
 import model
 import train
 import mydatasets
-
+import pdb
 
 parser = argparse.ArgumentParser(description='CNN text classificer')
 # learning
@@ -37,6 +37,12 @@ parser.add_argument('-no-cuda', action='store_true', default=False, help='disabl
 parser.add_argument('-snapshot', type=str, default=None, help='filename of model snapshot [default: None]')
 parser.add_argument('-predict', type=str, default=None, help='predict the sentence given')
 parser.add_argument('-test', action='store_true', default=False, help='train or test')
+
+parser.add_argument('-train_filepath', type=str, default=None, help='Training filepath (CSV/TSV)')
+parser.add_argument('-test_filepath', type=str, default=None, help='Testing filepath (CSV/TSV)')
+parser.add_argument('-options', type=int, default=1, help='CSV (1) or TSV (2)')
+parser.add_argument('-header', type=bool, default=True, help='Header in file or not')
+
 args = parser.parse_args()
 
 
@@ -57,6 +63,7 @@ def sst(text_field, label_field,  **kargs):
 # load MR dataset
 def mr(text_field, label_field, **kargs):
     train_data, dev_data = mydatasets.MR.splits(text_field, label_field)
+    pdb.set_trace()
     text_field.build_vocab(train_data, dev_data)
     label_field.build_vocab(train_data, dev_data)
     train_iter, dev_iter = data.Iterator.splits(
@@ -65,12 +72,28 @@ def mr(text_field, label_field, **kargs):
                                 **kargs)
     return train_iter, dev_iter
 
+def sarcasm(text_field, label_field, train_filepath, test_filepath, options, header, **kargs):
+    train_data, dev_data, test_data = mydatasets.CSVDataset.splits(text_field, label_field, train_filepath, test_filepath, options, header)
+    pdb.set_trace()
+    text_field.build_vocab(train_data, dev_data, test_data)
+    label_field.build_vocab(train_data, dev_data, test_data)
+    train_iter, dev_iter, test_iter = data.BucketIterator.splits(
+                                        (train_data, dev_data, test_data), 
+                                        batch_sizes=(args.batch_size, 
+                                                     len(dev_data), 
+                                                     len(test_data)),
+                                        **kargs)
+    return train_iter, dev_iter, test_iter
+
 
 # load data
 print("\nLoading data...")
 text_field = data.Field(lower=True)
 label_field = data.Field(sequential=False)
-train_iter, dev_iter = mr(text_field, label_field, device=-1, repeat=False)
+
+
+
+train_iter, dev_iter, test_iter = sarcasm(text_field, label_field, args.train_filepath, args.test_filepath, args.options, args.header, device=-1, repeat=False)
 # train_iter, dev_iter, test_iter = sst(text_field, label_field, device=-1, repeat=False)
 
 

@@ -1,3 +1,14 @@
+##Running Instructions:
+train
+```
+./main.py -train_filepath=yelp-sentiment/sarcasm-10k.csv -test_filepath=yelp-sentiment/sarcasm-10k.csv -options=1
+```
+
+test
+```
+./main.py -train_filepath=yelp-sentiment/sarcasm-10k.csv -test_filepath=yelp-sentiment/sarcasm-10k.csv -options=1 -test -snapshot=snapshot/2019-06-01_16-12-06/best_steps_200.pt 
+```
+
 ## Introduction
 This is the implementation of Kim's [Convolutional Neural Networks for Sentence Classification](https://arxiv.org/abs/1408.5882) paper in PyTorch.
 

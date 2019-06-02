@@ -53,6 +53,6 @@ class CNN_Text(nn.Module):
         x3 = self.conv_and_pool(x,self.conv15) #(N,Co)
         x = torch.cat((x1, x2, x3), 1) # (N,len(Ks)*Co)
         '''
-        x = self.dropout(x)  # (N, len(Ks)*Co)
-        logit = self.fc1(x)  # (N, C)
-        return logit
+        x_drop = self.dropout(x)  # (N, len(Ks)*Co)
+        logit = self.fc1(x_drop)  # (N, C)
+        return logit, x

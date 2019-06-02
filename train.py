@@ -3,6 +3,7 @@ import sys
 import torch
 import torch.autograd as autograd
 import torch.nn.functional as F
+import numpy as np
 
 
 def train(train_iter, dev_iter, model, args):
@@ -23,7 +24,7 @@ def train(train_iter, dev_iter, model, args):
                 feature, target = feature.cuda(), target.cuda()
 
             optimizer.zero_grad()
-            logit = model(feature)
+            logit, embedding = model(feature)
 
             #print('logit vector', logit.size())
             #print('target vector', target.size())
@@ -58,19 +59,21 @@ def train(train_iter, dev_iter, model, args):
 def eval(data_iter, model, args):
     model.eval()
     corrects, avg_loss = 0, 0
+    embeddings = []
     for batch in data_iter:
         feature, target = batch.text, batch.label
         feature.t_(), target.data.sub_(1)  # batch first, index align
         if args.cuda:
             feature, target = feature.cuda(), target.cuda()
 
-        logit = model(feature)
+        logit, embedding = model(feature)
         loss = F.cross_entropy(logit, target, size_average=False)
 
         avg_loss += loss
         corrects += (torch.max(logit, 1)
                      [1].view(target.size()).data == target.data).sum()
-
+        embeddings.extend(embedding)
+        
     size = len(data_iter.dataset)
     avg_loss /= size
     accuracy = 100.0 * corrects/size
@@ -78,6 +81,13 @@ def eval(data_iter, model, args):
                                                                        accuracy, 
                                                                        corrects, 
                                                                        size))
+    if args.test:
+        new_embeddings = []
+        for idx, embed in enumerate(embeddings):
+            print(embed.type())
+            new_embeddings.append(embed.detach().cpu().numpy())
+        print(len(embeddings), len(embeddings[0]))
+        np.save('./embeddings.npy', np.array(new_embeddings))
     return accuracy
 
 
@@ -92,7 +102,7 @@ def predict(text, model, text_field, label_feild, cuda_flag):
     if cuda_flag:
         x = x.cuda()
     print(x)
-    output = model(x)
+    output, embedding = model(x)
     _, predicted = torch.max(output, 1)
     #return label_feild.vocab.itos[predicted.data[0][0]+1]
     return label_feild.vocab.itos[predicted.data[0]+1]

@@ -125,10 +125,10 @@ if args.predict is not None:
     label = train.predict(args.predict, cnn, text_field, label_field, args.cuda)
     print('\n[Text]  {}\n[Label] {}\n'.format(args.predict, label))
 elif args.test:
-    try:
-        train.eval(test_iter, cnn, args) 
-    except Exception as e:
-        print("\nSorry. The test dataset doesn't  exist.\n")
+    # try:
+    train.eval(test_iter, cnn, args) 
+    # except Exception as e:
+    #     print("\nSorry. The test dataset doesn't  exist.\n")
 else:
     print()
     try:

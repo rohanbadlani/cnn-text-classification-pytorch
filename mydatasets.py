@@ -20,6 +20,7 @@ class TarDataset(data.Dataset):
     @classmethod
     def download_or_unzip(cls, root):
         path = os.path.join(root, cls.dirname)
+        #pdb.set_trace()
         if not os.path.isdir(path):
             tpath = os.path.join(root, cls.filename)
             if not os.path.isfile(tpath):
@@ -208,7 +209,7 @@ class CSVDataset(TarDataset):
             Remaining keyword arguments: Passed to the splits method of
                 Dataset.
         """
-        path = cls.download_or_unzip(root)
+        #path = cls.download_or_unzip(root)
         #pdb.set_trace()
             
         examples = cls(text_field, label_field, path=train_filepath, options=options, header=header, **kwargs).examples

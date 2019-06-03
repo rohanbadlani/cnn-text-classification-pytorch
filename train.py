@@ -4,7 +4,23 @@ import torch
 import torch.autograd as autograd
 import torch.nn.functional as F
 import numpy as np
+import pdb
+import psutil
+import gc
 
+def memReport():
+    for obj in gc.get_objects():
+        if torch.is_tensor(obj):
+            print(type(obj), obj.size())
+    
+def cpuStats():
+        print(sys.version)
+        print(psutil.cpu_percent())
+        print(psutil.virtual_memory())  # physical memory usage
+        pid = os.getpid()
+        py = psutil.Process(pid)
+        memoryUse = py.memory_info()[0] / 2. ** 30  # memory use in GB...I think
+        print('memory GB:', memoryUse)
 
 def train(train_iter, dev_iter, model, args):
     if args.cuda:
@@ -18,8 +34,12 @@ def train(train_iter, dev_iter, model, args):
     model.train()
     for epoch in range(1, args.epochs+1):
         for batch in train_iter:
+            #pdb.set_trace()
+            #memReport()
             feature, target = batch.text, batch.label
             feature.t_(), target.data.sub_(1)  # batch first, index align
+            if(feature.size()[1] < 5):
+                continue
             if args.cuda:
                 feature, target = feature.cuda(), target.cuda()
 
@@ -54,25 +74,35 @@ def train(train_iter, dev_iter, model, args):
                         print('early stop by {} steps.'.format(args.early_stop))
             elif steps % args.save_interval == 0:
                 save(model, args.save_dir, 'snapshot', steps)
-
+            del feature, target, logit, embedding
 
 def eval(data_iter, model, args):
     model.eval()
     corrects, avg_loss = 0, 0
     embeddings = []
     for batch in data_iter:
+        #cpuStats()
+        #memReport()
+        #pdb.set_trace()
         feature, target = batch.text, batch.label
         feature.t_(), target.data.sub_(1)  # batch first, index align
+
+        if(feature.size()[1] < 5):
+            continue
         if args.cuda:
             feature, target = feature.cuda(), target.cuda()
 
         logit, embedding = model(feature)
         loss = F.cross_entropy(logit, target, size_average=False)
 
-        avg_loss += loss
+        avg_loss += float(loss)
         corrects += (torch.max(logit, 1)
                      [1].view(target.size()).data == target.data).sum()
-        embeddings.extend(embedding)
+        del feature, target, logit, embedding, loss
+        #if args.test:
+        #    embeddings.extend(embedding)
+        #else:
+        #    del embedding
         
     size = len(data_iter.dataset)
     avg_loss /= size
@@ -81,13 +111,13 @@ def eval(data_iter, model, args):
                                                                        accuracy, 
                                                                        corrects, 
                                                                        size))
-    if args.test:
-        new_embeddings = []
-        for idx, embed in enumerate(embeddings):
-            print(embed.type())
-            new_embeddings.append(embed.detach().cpu().numpy())
-        print(len(embeddings), len(embeddings[0]))
-        np.save('./embeddings.npy', np.array(new_embeddings))
+    #if args.test:
+    #    new_embeddings = []
+    #    for idx, embed in enumerate(embeddings):
+    #        print(embed.type())
+    #        new_embeddings.append(embed.detach().cpu().numpy())
+    #    print(len(embeddings), len(embeddings[0]))
+    #    np.save('./embeddings.npy', np.array(new_embeddings))
     return accuracy
 
 

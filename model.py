@@ -50,13 +50,15 @@ class CNN_Text(nn.Module):
         #pdb.set_trace()
 
         x = x.unsqueeze(1)  # (N, Ci, W, D)
-
+        #print("Before Conv shape = " + str(x.shape))
         #Conv
         x = [F.relu(conv(x)) for conv in self.convs1]  # [(N, Co, W, D), ...]*len(Ks)
 
+        #print("After Conv shape = " + str(x[0].shape))
         #MaxPool - apply in 1D over all the convolutions
-        x = [F.max_pool2d(i, [2, 1]) for i in x]  # [(N, Co, W/2), ...]*len(Ks)
+        x = [F.max_pool2d(i, [max(2, int(i.size(2)/16)), 1]) for i in x]  # [(N, Co, W/2), ...]*len(Ks)
 
+        #print("After Maxpool shape = " + str(x[0].shape))
         #Concat
         x = torch.cat(x, 2)
 
@@ -81,6 +83,7 @@ class CNN_Text(nn.Module):
         x_drop = self.dropout(x) # (N, len(Ks)*Co)
 
         embedding = self.downsample(x)
-        
+       
+        del x, x_drop 
         logit = self.fc1(embedding)  # (N, C)
         return logit, embedding

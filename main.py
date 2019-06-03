@@ -63,7 +63,7 @@ def sst(text_field, label_field,  **kargs):
 # load MR dataset
 def mr(text_field, label_field, **kargs):
     train_data, dev_data = mydatasets.MR.splits(text_field, label_field)
-    pdb.set_trace()
+    #pdb.set_trace()
     text_field.build_vocab(train_data, dev_data)
     label_field.build_vocab(train_data, dev_data)
     train_iter, dev_iter = data.Iterator.splits(
@@ -74,14 +74,14 @@ def mr(text_field, label_field, **kargs):
 
 def sarcasm(text_field, label_field, train_filepath, test_filepath, options, header, **kargs):
     train_data, dev_data, test_data = mydatasets.CSVDataset.splits(text_field, label_field, train_filepath, test_filepath, options, header)
-    pdb.set_trace()
+    #pdb.set_trace()
     text_field.build_vocab(train_data, dev_data, test_data)
     label_field.build_vocab(train_data, dev_data, test_data)
-    train_iter, dev_iter, test_iter = data.BucketIterator.splits(
+    train_iter, dev_iter, test_iter = data.Iterator.splits(
                                         (train_data, dev_data, test_data), 
                                         batch_sizes=(args.batch_size, 
-                                                     len(dev_data), 
-                                                     len(test_data)),
+                                                     args.batch_size, 
+                                                     args.batch_size),
                                         **kargs)
     return train_iter, dev_iter, test_iter
 
@@ -94,7 +94,7 @@ label_field = data.Field(sequential=False)
 
 
 train_iter, dev_iter, test_iter = sarcasm(text_field, label_field, args.train_filepath, args.test_filepath, args.options, args.header, device=-1, repeat=False)
-# train_iter, dev_iter, test_iter = sst(text_field, label_field, device=-1, repeat=False)
+#train_iter, dev_iter, test_iter = sst(text_field, label_field, device=-1, repeat=False)
 
 
 # update args and print

@@ -109,7 +109,7 @@ class MR(TarDataset):
                 Dataset.
         """
         path = cls.download_or_unzip(root)
-        pdb.set_trace()
+        #pdb.set_trace()
         examples = cls(text_field, label_field, path=path, **kwargs).examples
         if shuffle: random.shuffle(examples)
         dev_index = -1 * int(dev_ratio*len(examples))
@@ -209,7 +209,7 @@ class CSVDataset(TarDataset):
                 Dataset.
         """
         path = cls.download_or_unzip(root)
-        pdb.set_trace()
+        #pdb.set_trace()
             
         examples = cls(text_field, label_field, path=train_filepath, options=options, header=header, **kwargs).examples
         if shuffle: random.shuffle(examples)

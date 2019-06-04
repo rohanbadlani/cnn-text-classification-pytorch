@@ -23,19 +23,20 @@ class CNN_Text(nn.Module):
         Ks = args.kernel_sizes
 
         self.embed = nn.Embedding(V, D)
-        # self.convs1 = [nn.Conv2d(Ci, Co, (K, D)) for K in Ks] # Putting D = 1
-        self.convs1 = nn.ModuleList([nn.Conv2d(Ci, Co, (K, 1)) for K in Ks])
+        self.convs1 = nn.ModuleList([nn.Conv2d(Ci, Co, (K, D)) for K in Ks]) # Putting D = 1
+        # self.convs1 = nn.ModuleList([nn.Conv2d(Ci, Co, (K, 1)) for K in Ks])
         '''
         self.conv13 = nn.Conv2d(Ci, Co, (3, D))
         self.conv14 = nn.Conv2d(Ci, Co, (4, D))
         self.conv15 = nn.Conv2d(Ci, Co, (5, D))
         '''
-        self.convs2 = nn.ModuleList([nn.Conv2d(Ci2, Co2, (3, 1))])
+        # self.convs2 = nn.ModuleList([nn.Conv2d(Ci2, Co2, (3, 1))])
 
         self.dropout = nn.Dropout(args.dropout)
-        self.downsample = nn.Linear(Co2*D, 128)
-        self.fc1 = nn.Linear(128, C)
-
+        # self.downsample = nn.Linear(Co2*D, 128)
+        # self.fc1 = nn.Linear(128, C)
+        self.fc1 = nn.Linear(len(Ks)*Co, C)
+        
     def conv_and_pool(self, x, conv):
         x = F.relu(conv(x)).squeeze(3)  # (N, Co, W)
         x = F.max_pool1d(x, x.size(2)).squeeze(2)
@@ -52,24 +53,27 @@ class CNN_Text(nn.Module):
         x = x.unsqueeze(1)  # (N, Ci, W, D)
         #print("Before Conv shape = " + str(x.shape))
         #Conv
-        x = [F.relu(conv(x)) for conv in self.convs1]  # [(N, Co, W, D), ...]*len(Ks)
+        x = [F.relu(conv(x)).squeeze(3) for conv in self.convs1]  # [(N, Co, W), ...]*len(Ks)
+        # x = [F.relu(conv(x)) for conv in self.convs1]  # [(N, Co, W, D), ...]*len(Ks)
 
         #print("After Conv shape = " + str(x[0].shape))
         #MaxPool - apply in 1D over all the convolutions
-        x = [F.max_pool2d(i, [max(2, int(i.size(2)/16)), 1]) for i in x]  # [(N, Co, W/2), ...]*len(Ks)
+        x = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in x]  # [(N, Co), ...]*len(Ks)
+        # x = [F.max_pool2d(i, [max(2, int(i.size(2)/16)), 1]) for i in x]  # [(N, Co, W/2), ...]*len(Ks)
 
         #print("After Maxpool shape = " + str(x[0].shape))
         #Concat
-        x = torch.cat(x, 2)
+        embedding = torch.cat(x, 1)
+        # x = torch.cat(x, 2)
 
         #Conv
-        x = [F.relu(conv(x)) for conv in self.convs2] # [(N, Co2, W, D), ...]*len(Ks2=1)
+        # x = [F.relu(conv(x)) for conv in self.convs2] # [(N, Co2, W, D), ...]*len(Ks2=1)
 
         #Maxpool
-        x = [F.max_pool2d(i, [i.size(2),1]).squeeze(2) for i in x]  # [(N, Co2, W/2, D), ...]*len(Ks2=1)
+        # x = [F.max_pool2d(i, [i.size(2),1]).squeeze(2) for i in x]  # [(N, Co2, W/2, D), ...]*len(Ks2=1)
 
         #Concat
-        x = x[0]
+        # x = x[0]
 
         '''
         x1 = self.conv_and_pool(x,self.conv13) #(N,Co)
@@ -78,12 +82,13 @@ class CNN_Text(nn.Module):
         x = torch.cat((x1, x2, x3), 1) # (N,len(Ks)*Co)
         '''
         
-        x = x.view(x.size(0), -1)
+        # x = x.view(x.size(0), -1)
 
-        x_drop = self.dropout(x) # (N, len(Ks)*Co)
+        # x_drop = self.dropout(x) # (N, len(Ks)*Co)
+        x_drop = self.dropout(embedding)
+        # embedding = self.downsample(x)
 
-        embedding = self.downsample(x)
-       
+        logit = self.fc1(x_drop)
         del x, x_drop 
-        logit = self.fc1(embedding)  # (N, C)
+        # logit = self.fc1(embedding)  # (N, C)
         return logit, embedding

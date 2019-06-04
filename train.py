@@ -74,8 +74,9 @@ def train(train_iter, dev_iter, model, args):
                         print('early stop by {} steps.'.format(args.early_stop))
             elif steps % args.save_interval == 0:
                 save(model, args.save_dir, 'snapshot', steps)
-            del feature, target, logit, embedding
+            del feature, target, logit, embedding, loss
 
+            
 def eval(data_iter, model, args):
     model.eval()
     corrects, avg_loss = 0, 0
@@ -92,17 +93,21 @@ def eval(data_iter, model, args):
         if args.cuda:
             feature, target = feature.cuda(), target.cuda()
 
-        logit, embedding = model(feature)
+        
+        logit, embedding = model(feature)        
         loss = F.cross_entropy(logit, target, size_average=False)
 
         avg_loss += float(loss)
         corrects += (torch.max(logit, 1)
                      [1].view(target.size()).data == target.data).sum()
-        del feature, target, logit, embedding, loss
-        #if args.test:
-        #    embeddings.extend(embedding)
-        #else:
-        #    del embedding
+        del feature, target, logit, loss
+
+        if args.test:
+            embeddings.extend(embedding.data)
+            del embedding
+        else:
+           del embedding
+
         
     size = len(data_iter.dataset)
     avg_loss /= size
@@ -111,13 +116,14 @@ def eval(data_iter, model, args):
                                                                        accuracy, 
                                                                        corrects, 
                                                                        size))
-    #if args.test:
-    #    new_embeddings = []
-    #    for idx, embed in enumerate(embeddings):
-    #        print(embed.type())
-    #        new_embeddings.append(embed.detach().cpu().numpy())
-    #    print(len(embeddings), len(embeddings[0]))
-    #    np.save('./embeddings.npy', np.array(new_embeddings))
+    if args.test:
+        new_embeddings = []
+        for idx, embed in enumerate(embeddings):
+            # print(embed.type())
+            new_embeddings.append(embed.detach().cpu().numpy())
+        print(len(embeddings), len(embeddings[0]))
+        np.save('./embeddings.npy', np.array(new_embeddings))
+        del embeddings, new_embeddings
     return accuracy
 
 

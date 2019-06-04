@@ -42,6 +42,7 @@ parser.add_argument('-train_filepath', type=str, default=None, help='Training fi
 parser.add_argument('-test_filepath', type=str, default=None, help='Testing filepath (CSV/TSV)')
 parser.add_argument('-options', type=int, default=1, help='CSV (1) or TSV (2)')
 parser.add_argument('-header', type=bool, default=True, help='Header in file or not')
+parser.add_argument('-embedding_op_file', type=str, default='./embeddings.npy', help='Filename to store embeddings in')
 
 args = parser.parse_args()
 
@@ -93,8 +94,9 @@ label_field = data.Field(sequential=False)
 
 
 
-train_iter, dev_iter, test_iter = sarcasm(text_field, label_field, args.train_filepath, args.test_filepath, args.options, args.header, device=-1, repeat=False)
-#train_iter, dev_iter, test_iter = sst(text_field, label_field, device=-1, repeat=False)
+#train_iter, dev_iter, test_iter = sarcasm(text_field, label_field, args.train_filepath, args.test_filepath, args.options, args.header, device=-1, repeat=False)
+# train_iter, dev_iter = mr(text_field, label_field, repeat=False)
+train_iter, dev_iter, test_iter = sst(text_field, label_field, device=-1, repeat=False)
 
 
 # update args and print

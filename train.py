@@ -104,17 +104,16 @@ def eval(data_iter, model, args):
         corrects += (predictions == target.data).sum()
         del feature, target, logit, loss
 
-        cpu = True
-        if cpu:
-            targets, predictions = targets.cpu(), predictions.cpu()
-
-        out_file = "out.csv"
-        df = pd.DataFrame(data={"targets:" targets, \
-                                "predictions": predictions})
-        df.to_csv(out_file)
-        del predictions, targets, df
-
         if args.test:
+            cpu = True
+            if cpu:
+                targets, predictions = targets.cpu(), predictions.cpu()
+
+            out_file = "out.csv"
+            df = pd.DataFrame(data={"targets:" targets, \
+                                    "predictions": predictions})
+            df.to_csv(out_file)
+            del predictions, targets, df
             embeddings.extend(embedding.data)
             del embedding
         else:

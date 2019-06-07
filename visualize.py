@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
 
-def get_labels_from_csv(csv_file, label):
+def get_labels_from_csv(csv_file: str, label: str) -> np.array:
 	df = pd.read_csv(csv_file)
-	return df[[label]].values
+	return np.array(df[[label]].values)
 
-def get_overlap(arr1, arr2):
+def get_overlap(arr1: List, arr2: List) -> (int, int, int):
 	arr1, arr2 = np.array(arr1), np.array(arr2)
 	total_overlap = np.sum(arr1 == arr2)
 	positive_overlap = np.sum(np.logical_and(arr1 == arr2, arr1 == 1))

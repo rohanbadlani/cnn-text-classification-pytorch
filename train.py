@@ -105,8 +105,7 @@ def eval(data_iter, model, args):
         del feature, target, logit, loss
 
         if args.test:
-            cpu = True
-            if cpu:
+            if not args.cuda:
                 targets, predictions = targets.cpu(), predictions.cpu()
 
             out_file = "out.csv"

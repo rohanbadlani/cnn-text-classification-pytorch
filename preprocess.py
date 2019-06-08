@@ -25,10 +25,9 @@ def getData(inputFile, dataFile,n):
             notFunnyCount += 1
             t = ('0',data["text"].encode('utf-8'))
             d.append(t)
-
-                #else:
-                #   if funnyCount >= n and notFunnyCount >= n:
-                #       break
+            #else:
+            #   if funnyCount >= n and notFunnyCount >= n:
+            #       break
 
     print len(d)
     pickle.dump(d, dataFile)

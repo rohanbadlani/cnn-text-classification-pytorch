@@ -4,26 +4,10 @@ import torch
 import torch.autograd as autograd
 import torch.nn.functional as F
 import numpy as np
-import pdb
-import psutil
-import gc
 import pandas as pd
 
-def memReport():
-    for obj in gc.get_objects():
-        if torch.is_tensor(obj):
-            print(type(obj), obj.size())
-    
-def cpuStats():
-        print(sys.version)
-        print(psutil.cpu_percent())
-        print(psutil.virtual_memory())  # physical memory usage
-        pid = os.getpid()
-        py = psutil.Process(pid)
-        memoryUse = py.memory_info()[0] / 2. ** 30  # memory use in GB...I think
-        print('memory GB:', memoryUse)
 
-def train(train_iter, dev_iter, model, args):
+def train(train_data, dev_data, model, args):
     if args.cuda:
         model.cuda()
 
@@ -33,19 +17,23 @@ def train(train_iter, dev_iter, model, args):
     best_acc = 0
     last_step = 0
     model.train()
+    
     for epoch in range(1, args.epochs+1):
-        for batch in train_iter:
+        for batch_idx in range(len(train_data[0])):
             #pdb.set_trace()
             #memReport()
-            feature, target = batch.text, batch.label
-            feature.t_(), target.data.sub_(1)  # batch first, index align
-            if(feature.size()[1] < 5):
-                continue
+            feature, target = train_data[0][batch_idx], train_data[1][batch_idx]
+            feature, target = np.array(feature), np.array(target)
+            batch_size = feature.shape[0]
+            feature, target = torch.from_numpy(feature), torch.from_numpy(target)
+            
+            # feature.t_(), target.data.sub_(1)  # batch first, index align
+            
             if args.cuda:
                 feature, target = feature.cuda(), target.cuda()
 
             optimizer.zero_grad()
-            logit, embedding = model(feature)
+            logit = model(feature)
 
             #print('logit vector', logit.size())
             #print('target vector', target.size())
@@ -56,15 +44,15 @@ def train(train_iter, dev_iter, model, args):
             steps += 1
             if steps % args.log_interval == 0:
                 corrects = (torch.max(logit, 1)[1].view(target.size()).data == target.data).sum()
-                accuracy = 100.0 * corrects/batch.batch_size
+                accuracy = 100.0 * corrects/batch_size
                 sys.stdout.write(
                     '\rBatch[{}] - loss: {:.6f}  acc: {:.4f}%({}/{})'.format(steps, 
                                                                              loss, 
                                                                              accuracy,
                                                                              corrects,
-                                                                             batch.batch_size))
+                                                                             batch_size))
             if steps % args.test_interval == 0:
-                dev_acc = eval(dev_iter, model, args)
+                dev_acc = eval(dev_data, model, args)
                 if dev_acc > best_acc:
                     best_acc = dev_acc
                     last_step = steps
@@ -75,76 +63,53 @@ def train(train_iter, dev_iter, model, args):
                         print('early stop by {} steps.'.format(args.early_stop))
             elif steps % args.save_interval == 0:
                 save(model, args.save_dir, 'snapshot', steps)
-            del feature, target, logit, embedding, loss
+            del feature, target, logit, loss
 
             
-def eval(data_iter, model, args):
+def eval(data, model, args):
     model.eval()
     corrects, avg_loss = 0, 0
     total = 0
-    embeddings = []
-    for batch in data_iter:
+    for batch_idx in range(len(data[0])):
         #cpuStats()
         #memReport()
         #pdb.set_trace()
-        feature, target = batch.text, batch.label
-        feature.t_(), target.data.sub_(1)  # batch first, index align
+        feature, target = data[0][batch_idx], data[1][batch_idx]
+        feature, target = np.array(feature), np.array(target)
+        # print(feature.shape, target.shape)
+        batch_size = feature.shape[0]
+        feature, target = torch.from_numpy(feature), torch.from_numpy(target)
+        # feature.t_(), target.data.sub_(1)  # batch first, index align
 
-        if(feature.size()[1] < 5):
-            continue
         if args.cuda:
             feature, target = feature.cuda(), target.cuda()
-
         
-        logit, embedding = model(feature)        
-        loss = F.cross_entropy(logit, target)
+        logit = model(feature)        
+        loss = F.cross_entropy(logit, target, reduction='mean')
 
         avg_loss += float(loss)
         targets = target.data
         predictions = torch.max(logit, 1)[1].view(target.size()).data
         corrects += (predictions == target.data).sum()
-        del feature, target, logit, loss
+        total += target.data.shape[0]
 
         if args.test:
-            if not args.cuda:
+            cpu = True
+            if cpu or (not args.cuda):
                 targets, predictions = targets.cpu(), predictions.cpu()
-
-            out_file = "out.csv"
-            df = pd.DataFrame(data={"targets:" targets, \
-                                    "predictions": predictions})
+            out_file = str(input("Output file name: "))
+            if out_file in ["", "\n", None]:
+                out_file = "out.csv"
+            df = pd.DataFrame(data={"targets": targets, "predictions": predictions})
             df.to_csv(out_file)
-            del predictions, targets, df
-            embeddings.extend(embedding.data)
-            #append_to_file
-            #pdb.set_trace()
-            labels = target.cpu()
-            with open("./embedding_labels.txt", "a") as fp:
-                for i in range(target.data.shape[0]):
-                    fp.write(str(labels[i].item()) + "\n")
-            fp.close()
-            del embedding
-        else:
-           del embedding
 
-        del feature, target, logit, loss
-        
-    size = len(data_iter.dataset)
-    avg_loss /= size
+    avg_loss /= total
     accuracy = 100.0 * corrects/total
     print('\nEvaluation - loss: {:.6f}  acc: {:.4f}%({}/{}) \n'.format(avg_loss, 
                                                                        accuracy, 
                                                                        corrects, 
                                                                        total))
-    if args.test:
-        new_embeddings = []
-        for idx, embed in enumerate(embeddings):
-            # print(embed.type())
-            new_embeddings.append(embed.detach().cpu().numpy())
-        print(len(embeddings), len(embeddings[0]))
-        np.save('./embeddings.npy', np.array(new_embeddings))
-        del embeddings, new_embeddings
     return accuracy
-
 
 def predict(text, model, text_field, label_feild, cuda_flag):
     assert isinstance(text, str)

@@ -127,7 +127,7 @@ class CSVDataset(TarDataset):
     def sort_key(ex):
         return len(ex.text)
 
-    def __init__(self, text_field, label_field, options=1, header=True, path=None, examples=None, **kwargs):
+    def __init__(self, text_field, label_field, options=1, header=True, formatting=1, path=None, examples=None, **kwargs):
         """Create an MR dataset instance given a path and fields.
 
         Arguments:
@@ -179,14 +179,19 @@ class CSVDataset(TarDataset):
                     next(readCSV)
                 for row in readCSV:
                     text = row[1]
-                    labelint = int(row[0])
+                    if formatting == 1:
+                        labelint = int(row[0])
+                    else:
+                        labelint = int(row[2])
                     #pdb.set_trace()
                     text_examples.append(str(text))
                     labels.append(labelint)
                     if labelint == 1:
+                        #pdb.set_trace()
                         label = 'positive'
                     else:
                         label = 'negative'
+                    #pdb.set_trace()
                     examples += [data.Example.fromlist([text, label], fields)]
 
         #pdb.set_trace()
@@ -194,7 +199,7 @@ class CSVDataset(TarDataset):
         #pdb.set_trace()
 
     @classmethod
-    def splits(cls, text_field, label_field, train_filepath, test_filepath, options=1, header=True, dev_ratio=.1, shuffle=True, root='.', **kwargs):
+    def splits(cls, text_field, label_field, train_filepath, test_filepath, options=1, header=True, formatting=1, dev_ratio=.1, shuffle=True, root='.', **kwargs):
         """Create dataset objects for splits of the MR dataset.
 
         Arguments:
@@ -212,7 +217,7 @@ class CSVDataset(TarDataset):
         #path = cls.download_or_unzip(root)
         #pdb.set_trace()
             
-        examples = cls(text_field, label_field, path=train_filepath, options=options, header=header, **kwargs).examples
+        examples = cls(text_field, label_field, path=train_filepath, options=options, header=header, formatting=formatting, **kwargs).examples
         if shuffle: random.shuffle(examples)
         dev_index = -1 * int(dev_ratio*len(examples))
 

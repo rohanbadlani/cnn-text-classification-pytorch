@@ -7,6 +7,7 @@ import numpy as np
 import pdb
 import psutil
 import gc
+import pandas as pd
 
 def memReport():
     for obj in gc.get_objects():
@@ -99,13 +100,21 @@ def eval(data_iter, model, args):
         loss = F.cross_entropy(logit, target)
 
         avg_loss += float(loss)
-        corrects += (torch.max(logit, 1)
-                     [1].view(target.size()).data == target.data).sum()
-        #total += target.data.shape[0]
-        total += batch.batch_size
-
+        targets = target.data
+        predictions = torch.max(logit, 1)[1].view(target.size()).data
+        corrects += (predictions == target.data).sum()
+        del feature, target, logit, loss
 
         if args.test:
+            cpu = True
+            if cpu:
+                targets, predictions = targets.cpu(), predictions.cpu()
+
+            out_file = "out.csv"
+            df = pd.DataFrame(data={"targets:" targets, \
+                                    "predictions": predictions})
+            df.to_csv(out_file)
+            del predictions, targets, df
             embeddings.extend(embedding.data)
             #append_to_file
             #pdb.set_trace()

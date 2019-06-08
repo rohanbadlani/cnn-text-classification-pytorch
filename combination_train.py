@@ -10,7 +10,7 @@ import pandas as pd
 def train(train_data, dev_data, model, args):
     if args.cuda:
         model.cuda()
-
+        
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     steps = 0
@@ -70,6 +70,12 @@ def eval(data, model, args):
     model.eval()
     corrects, avg_loss = 0, 0
     total = 0
+    
+    if args.test:
+        out_file = str(input("Output file name: "))
+        if out_file in ["", "\n", None]:
+            out_file = "out.csv"
+    
     for batch_idx in range(len(data[0])):
         #cpuStats()
         #memReport()
@@ -88,6 +94,7 @@ def eval(data, model, args):
         loss = F.cross_entropy(logit, target, reduction='mean')
 
         avg_loss += float(loss)
+        
         targets = target.data
         predictions = torch.max(logit, 1)[1].view(target.size()).data
         corrects += (predictions == target.data).sum()
@@ -97,9 +104,6 @@ def eval(data, model, args):
             cpu = True
             if cpu or (not args.cuda):
                 targets, predictions = targets.cpu(), predictions.cpu()
-            out_file = str(input("Output file name: "))
-            if out_file in ["", "\n", None]:
-                out_file = "out.csv"
             df = pd.DataFrame(data={"targets": targets, "predictions": predictions})
             df.to_csv(out_file)
 

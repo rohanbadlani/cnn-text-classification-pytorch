@@ -42,7 +42,7 @@ def f(row):
 
 if __name__ == "__main__":
 
-    outputFileName = "humour_train_new1.csv" #raw_input("output file name:")
+    outputFileName = "humour_48k.csv" #"humour_train_new1.csv" #raw_input("output file name:")
     #n = input("number of datapoints needed for each class:")
 
     inputFile = "~/hate-speech-and-offensive-language/classifier/review.json"
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         # remove the trailing "\n" from each line
         data = map(lambda x: x.rstrip(), data)
 
-        data_json_str = "[" + ','.join(data) + "]"
+        data_json_str = "[" + ",".join(data) + "]"
 
         # now, load it into pandas
         df = pd.read_json(data_json_str)
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     negatives = df[df["funny"] == 0]
     negatives_filtered = df.sample(neg_count)
     #new_df = grouped[(grouped["funny"] == 1) or (grouped["funny"] == 0 and )]
-    df = pd.concat([positives, negatives])
+    df = pd.concat([positives, negatives_filtered])
     df = df[["text", "funny"]]
     df.to_csv(outputFileName, encoding='utf-8') #loc[df['column_name'] == some_value]
 

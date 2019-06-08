@@ -70,6 +70,11 @@ def eval(data, model, args):
     model.eval()
     corrects, avg_loss = 0, 0
     total = 0
+    
+    out_file = str(input("Output file name: "))
+    if out_file in ["", "\n", None]:
+        out_file = "out.csv"
+    
     for batch_idx in range(len(data[0])):
         #cpuStats()
         #memReport()
@@ -98,9 +103,6 @@ def eval(data, model, args):
             cpu = True
             if cpu or (not args.cuda):
                 targets, predictions = targets.cpu(), predictions.cpu()
-            out_file = str(input("Output file name: "))
-            if out_file in ["", "\n", None]:
-                out_file = "out.csv"
             df = pd.DataFrame(data={"targets": targets, "predictions": predictions})
             df.to_csv(out_file)
 

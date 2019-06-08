@@ -71,9 +71,10 @@ def eval(data, model, args):
     corrects, avg_loss = 0, 0
     total = 0
     
-    out_file = str(input("Output file name: "))
-    if out_file in ["", "\n", None]:
-        out_file = "out.csv"
+    if args.test:
+        out_file = str(input("Output file name: "))
+        if out_file in ["", "\n", None]:
+            out_file = "out.csv"
     
     for batch_idx in range(len(data[0])):
         #cpuStats()

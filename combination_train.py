@@ -109,7 +109,7 @@ def eval(data, model, args):
             all_targets = np.concatenate((all_targets, targets))
             all_preds = np.concatenate((all_preds, predictions))
     
-    df = pd.DataFrame(data={"targets": targets, "predictions": predictions})
+    df = pd.DataFrame(data={"targets": all_targets, "predictions": all_preds})
     df.to_csv(out_file)
 
     avg_loss /= total

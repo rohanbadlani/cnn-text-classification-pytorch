@@ -76,6 +76,8 @@ def eval(data, model, args):
         if out_file in ["", "\n", None]:
             out_file = "out.csv"
     
+    all_targets = np.array([])
+    all_preds = np.array([])
     for batch_idx in range(len(data[0])):
         #cpuStats()
         #memReport()
@@ -103,9 +105,12 @@ def eval(data, model, args):
         if args.test:
             cpu = True
             if cpu or (not args.cuda):
-                targets, predictions = targets.cpu(), predictions.cpu()
-            df = pd.DataFrame(data={"targets": targets, "predictions": predictions})
-            df.to_csv(out_file)
+                targets, predictions = targets.cpu().numpy(), predictions.cpu().numpy()
+            all_targets = np.concatenate((all_targets, targets))
+            all_preds = np.concatenate((all_preds, predictions))
+    
+    df = pd.DataFrame(data={"targets": targets, "predictions": predictions})
+    df.to_csv(out_file)
 
     avg_loss /= total
     accuracy = 100.0 * corrects/total

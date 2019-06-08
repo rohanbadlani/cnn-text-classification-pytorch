@@ -29,7 +29,7 @@ def getData(inputFile, dataFile,n):
             #   if funnyCount >= n and notFunnyCount >= n:
             #       break
 
-    print len(d)
+    print(len(d))
     pickle.dump(d, dataFile)
 
     return d
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     inputFile = "~/hate-speech-and-offensive-language/classifier/review.json"
     inputFile = "/home/mananrai/cnn-text-classification-pytorch/yelp-sentiment/train2.tsv" #raw_input("Input file: ") #open('dataset/yelp_academic_dataset_review.json','r')
     #dataFile = open(outputFileName, 'w')
-
+    inputFile = "/home/mananrai/review.json"
     #data_file = inputFile
     '''
     with open(inputFile, 'r') as data_file:
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # read the entire file into a python array
     with open(inputFile, 'rb') as f:
         data = f.readlines()[:200000]
-
+        print(len(data))
         # remove the trailing "\n" from each line
         data = map(lambda x: x.rstrip(), data)
 
@@ -83,14 +83,15 @@ if __name__ == "__main__":
     df["funny"][df["funny"] >= 2] = 1
     df["text"] = df["text"].apply(lambda x: x.replace('\n', ' '))
 
-    pos_count = df[df["funny"] == 1].cpu().data.numpy().count()
-    neg_count = 2 * (200000 - pos_count)
+    pos_count = len(df[df["funny"] == 1]) #.data.numpy().count()
+    neg_count = 2 * pos_count #(200000 - pos_count)
     #grouped = df.groupby("funny")
+    print(pos_count, neg_count)
     positives = df[df["funny"] == 1]
     negatives = df[df["funny"] == 0]
     negatives_filtered = df.sample(neg_count)
     #new_df = grouped[(grouped["funny"] == 1) or (grouped["funny"] == 0 and )]
-    df = pd.concat(positives, negatives)
+    df = pd.concat([positives, negatives])
     df = df[["text", "funny"]]
     df.to_csv(outputFileName, encoding='utf-8') #loc[df['column_name'] == some_value]
 

@@ -37,12 +37,12 @@ parser.add_argument('-predict', type=str, default=None, help='predict the senten
 parser.add_argument('-test', action='store_true', default=False, help='train or test')
 
 parser.add_argument('-num-tasks', type=int, default=2, help='number of tasks (default: 1 (sentiment))')
-parser.add_argument('-embedding_files', type=list, default=['./dev_sentiment_embeddings.npy', './dev_sarc_sentiment_ds_embeddings.npy'],
+parser.add_argument('-embedding_files', nargs='*', type=str, default=['./dev_sentiment_embeddings.npy', './dev_sarc_sentiment_ds_embeddings.npy'],
                     help='path of the embedding files')
 #  './dev_sarc_sentiment_ds_embeddings.npy'
 # parser.add_argument('-embedding_file_2', type=str, default='./embeddings.npy', help='path of the second embedding file')
 # parser.add_argument('-embedding_file_3', type=str, default='./embeddings.npy', help='path of the third embedding file')
-parser.add_argument('-labels_file', type=str, default='./dev_sarc_sentiment_ds_labels.txt', help='path of the labels file')
+parser.add_argument('-labels_file', type=str, default='./sarc_sentiment_ds_labels.txt', help='path of the labels file')
 parser.add_argument('-options', type=int, default=1, help='CSV (1) or TSV (2)')
 parser.add_argument('-header', type=bool, default=True, help='Header in file or not')
 

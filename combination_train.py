@@ -4,12 +4,13 @@ import torch
 import torch.autograd as autograd
 import torch.nn.functional as F
 import numpy as np
+import pandas as pd
 
 
 def train(train_data, dev_data, model, args):
     if args.cuda:
         model.cuda()
-
+        
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     steps = 0
@@ -87,12 +88,22 @@ def eval(data, model, args):
         loss = F.cross_entropy(logit, target, reduction='mean')
 
         avg_loss += float(loss)
-        corrects += (torch.max(logit, 1)
-                     [1].view(target.size()).data == target.data).sum()
+        
+        targets = target.data
+        predictions = torch.max(logit, 1)[1].view(target.size()).data
+        corrects += (predictions == target.data).sum()
         total += target.data.shape[0]
 
-        del feature, target, logit, loss
-        
+        if args.test:
+            cpu = True
+            if cpu or (not args.cuda):
+                targets, predictions = targets.cpu(), predictions.cpu()
+            out_file = str(input("Output file name: "))
+            if out_file in ["", "\n", None]:
+                out_file = "out.csv"
+            df = pd.DataFrame(data={"targets": targets, "predictions": predictions})
+            df.to_csv(out_file)
+
     avg_loss /= total
     accuracy = 100.0 * corrects/total
     print('\nEvaluation - loss: {:.6f}  acc: {:.4f}%({}/{}) \n'.format(avg_loss, 

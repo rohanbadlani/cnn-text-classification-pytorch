@@ -44,8 +44,12 @@ parser.add_argument('-options', type=int, default=1, help='CSV (1) or TSV (2)')
 parser.add_argument('-header', type=bool, default=True, help='Header in file or not')
 parser.add_argument('-embedding_op_file', type=str, default='./embeddings.npy', help='Filename to store embeddings in')
 
-args = parser.parse_args()
 
+parser.add_argument('-vocab_train_filepath', type=str, default=None, help='Vocab Training filepath (CSV/TSV)')
+parser.add_argument('-vocab_test_filepath', type=str, default=None, help='Vocab Test filepath (CSV/TSV)')
+parser.add_argument('-vocab_options', type=int, default=1, help='CSV (1) or TSV (2)')
+parser.add_argument('-formatting', type=int, default=1, help='Formatting column of the label')
+args = parser.parse_args()
 
 # load SST dataset
 def sst(text_field, label_field,  **kargs):
@@ -73,11 +77,22 @@ def mr(text_field, label_field, **kargs):
                                 **kargs)
     return train_iter, dev_iter
 
-def sarcasm(text_field, label_field, train_filepath, test_filepath, options, header, **kargs):
-    train_data, dev_data, test_data = mydatasets.CSVDataset.splits(text_field, label_field, train_filepath, test_filepath, options, header)
+def sarcasm(text_field, label_field, formatting, train_filepath, test_filepath, vocab_train_filepath, vocab_test_filepath, vocab_options, options, header, **kargs):
+    train_data, dev_data, test_data = mydatasets.CSVDataset.splits(text_field, label_field, train_filepath, test_filepath, options, header, formatting)
     #pdb.set_trace()
+    
     text_field.build_vocab(train_data, dev_data, test_data)
     label_field.build_vocab(train_data, dev_data, test_data)
+    
+    #print(dev_data)
+
+    s_text_field = data.Field(lower=True)
+    s_label_field = data.Field(sequential=False)
+    s_train_data, s_dev_data, s_test_data = mydatasets.CSVDataset.splits(s_text_field, s_label_field, vocab_train_filepath, vocab_test_filepath, vocab_options, header, formatting)
+    s_text_field.build_vocab(s_train_data, s_dev_data, s_test_data)
+    
+    #train_data.fields['text'].vocab = s_train_data.fields['text'].vocab
+
     train_iter, dev_iter, test_iter = data.Iterator.splits(
                                         (train_data, dev_data, test_data), 
                                         batch_sizes=(args.batch_size, 
@@ -93,10 +108,9 @@ text_field = data.Field(lower=True)
 label_field = data.Field(sequential=False)
 
 
-
-#train_iter, dev_iter, test_iter = sarcasm(text_field, label_field, args.train_filepath, args.test_filepath, args.options, args.header, device=-1, repeat=False)
-# train_iter, dev_iter = mr(text_field, label_field, repeat=False)
-train_iter, dev_iter, test_iter = sst(text_field, label_field, device=-1, repeat=False)
+train_iter, dev_iter, test_iter = sarcasm(text_field, label_field, args.formatting, args.train_filepath, args.test_filepath, args.vocab_train_filepath, args.vocab_test_filepath, args.vocab_options, args.options, args.header, device=-1, repeat=False)
+#train_iter, dev_iter = mr(text_field, label_field, repeat=False)
+#train_iter, dev_iter, test_iter = sst(text_field, label_field, device=-1, repeat=False)
 
 
 # update args and print

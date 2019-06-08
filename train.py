@@ -7,6 +7,7 @@ import numpy as np
 import pdb
 import psutil
 import gc
+import pandas as pd
 
 def memReport():
     for obj in gc.get_objects():
@@ -80,6 +81,7 @@ def train(train_iter, dev_iter, model, args):
 def eval(data_iter, model, args):
     model.eval()
     corrects, avg_loss = 0, 0
+    total = 0
     embeddings = []
     for batch in data_iter:
         #cpuStats()
@@ -95,27 +97,45 @@ def eval(data_iter, model, args):
 
         
         logit, embedding = model(feature)        
-        loss = F.cross_entropy(logit, target, size_average=False)
+        loss = F.cross_entropy(logit, target)
 
         avg_loss += float(loss)
-        corrects += (torch.max(logit, 1)
-                     [1].view(target.size()).data == target.data).sum()
+        targets = target.data
+        predictions = torch.max(logit, 1)[1].view(target.size()).data
+        corrects += (predictions == target.data).sum()
         del feature, target, logit, loss
 
         if args.test:
+            cpu = True
+            if cpu:
+                targets, predictions = targets.cpu(), predictions.cpu()
+
+            out_file = "out.csv"
+            df = pd.DataFrame(data={"targets:" targets, \
+                                    "predictions": predictions})
+            df.to_csv(out_file)
+            del predictions, targets, df
             embeddings.extend(embedding.data)
+            #append_to_file
+            #pdb.set_trace()
+            labels = target.cpu()
+            with open("./embedding_labels.txt", "a") as fp:
+                for i in range(target.data.shape[0]):
+                    fp.write(str(labels[i].item()) + "\n")
+            fp.close()
             del embedding
         else:
            del embedding
 
+        del feature, target, logit, loss
         
     size = len(data_iter.dataset)
     avg_loss /= size
-    accuracy = 100.0 * corrects/size
+    accuracy = 100.0 * corrects/total
     print('\nEvaluation - loss: {:.6f}  acc: {:.4f}%({}/{}) \n'.format(avg_loss, 
                                                                        accuracy, 
                                                                        corrects, 
-                                                                       size))
+                                                                       total))
     if args.test:
         new_embeddings = []
         for idx, embed in enumerate(embeddings):

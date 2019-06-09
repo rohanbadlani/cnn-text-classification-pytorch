@@ -15,6 +15,8 @@ def get_overlap(arr1: List, arr2: List) -> (int, int, int, int, int):
 	false_negative_overlap = np.sum(np.logical_and(arr1 == 0, arr2 == 1))
 	return total_overlap, true_positive_overlap, true_negative_overlap, false_positive_overlap, false_negative_overlap
 
+# def graph_visualize(mat):
+
 if __name__ == "__main__":
 	# print(get_overlap([1,1,1,0,0], [1,0,1,1,0]))
 	results = {"true_positive_overlap": np.zeros((5, 5)),
@@ -22,10 +24,15 @@ if __name__ == "__main__":
 				"false_positive_overlap": np.zeros((5, 5)),
 				"false_negative_overlap": np.zeros((5, 5))}
 	
-	file_names = ["only_sentiment/only_sentiment_out.csv",
-					"only_sarcasm/only_sarcasm_out.csv",
-					"only_humour/only_humour_out.csv",
-					"only_hate_speech/only_hate_speech_out.csv"]
+	# file_names = ["only_sentiment/only_sentiment_out.csv",
+	# 				"only_sarcasm/only_sarcasm_out.csv",
+	# 				"only_humour/only_humour_out.csv",
+	# 				"only_hate_speech/only_hate_speech_out.csv"]
+	
+	file_names = ["/home/nishitasnani/shawn-na-repo/cnn-text-classification-pytorch/final_snapshot_sentiment_out.csv",
+					"./sentiment_hate_speech_humour_sarcarm2/test_sentiment_hate_speech_humour_sarcarm2.csv",
+					"/home/nishitasnani/shawn-na-repo/cnn-text-classification-pytorch/final_snapshot_2_sarc.csv",
+					"/home/nishitasnani/shawn-na-repo/cnn-text-classification-pytorch/final_snapshot_sarc_humor.csv"]
 
 	all_arrays = {}
 	targets = None

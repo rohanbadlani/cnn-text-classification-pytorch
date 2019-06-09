@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 import pickle
 
-def get_labels_from_csv(csv_file: str, label: str) -> np.array:
+def get_labels_from_csv(csv_file, label):
 	df = pd.read_csv(csv_file)
 	return np.array(df[[label]].values)
 
-def get_overlap(arr1: List, arr2: List) -> (int, int, int, int, int):
+def get_overlap(arr1: list, arr2: list) -> (int, int, int, int, int):
 	arr1, arr2 = np.array(arr1), np.array(arr2)
 	total_overlap = np.sum(arr1 == arr2)
 	true_positive_overlap = np.sum(np.logical_and(arr1 == arr2, arr1 == 1))
@@ -25,9 +25,9 @@ if __name__ == "__main__":
 				"false_negative_overlap": np.zeros((5, 5))}
 	
 	# file_names = ["only_sentiment/only_sentiment_out.csv",
-	# 				"only_sarcasm/only_sarcasm_out.csv",
-	# 				"only_humour/only_humour_out.csv",
-	# 				"only_hate_speech/only_hate_speech_out.csv"]
+	#               "only_sarcasm/only_sarcasm_out.csv",
+	#               "only_humour/only_humour_out.csv",
+	#               "only_hate_speech/only_hate_speech_out.csv"]
 	
 	file_names = ["/home/nishitasnani/shawn-na-repo/cnn-text-classification-pytorch/final_snapshot_sentiment_out.csv",
 					"./sentiment_hate_speech_humour_sarcarm2/test_sentiment_hate_speech_humour_sarcarm2.csv",
@@ -40,12 +40,13 @@ if __name__ == "__main__":
 	for fn in file_names:
 		predictions = get_labels_from_csv(fn, predictions_label)
 		all_arrays[fn[:fn.find("/")]] = predictions
-		if target is None:
+		if targets is None:
 			targets = get_labels_from_csv(fn, targets_label)
 			all_arrays["ground_truth"] = targets
 
-	for i, (task1, arr1) in enumerate(all_preds.items()):
-		for j, (task2, arr2) in enumerate(all_preds.items()):
+	for i, (task1, arr1) in enumerate(all_arrays.items()):
+		for j, (task2, arr2) in enumerate(all_arrays.items()):
+			print(i, task1, " ... ", j, task2)
 			_, tpo, tno, fpo, fno = get_overlap(arr1, arr2)
 			results["true_positive_overlap"][i][j] = tpo
 			results["true_negative_overlap"][i][j] = tno
@@ -54,4 +55,4 @@ if __name__ == "__main__":
 
 	print(results)
 	with open('results.pkl', 'wb') as outfile:
-	    pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
+		pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)

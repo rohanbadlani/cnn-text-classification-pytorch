@@ -66,6 +66,11 @@ if __name__ == "__main__":
 	else:
 		results = better_predictions(all_arrays[1], all_arrays[0], all_arrays["ground_truth"])
 		print(results)
-		with open('resutls2.pkl', 'wb') as outfile:
+		with open('results2.pkl', 'wb') as outfile:
 				pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
-	
+
+		results = better_predictions(all_arrays[0], all_arrays[1], all_arrays["ground_truth"])
+		np.save('went_wrong.npy', results)
+		print(results)
+		with open('results3.pkl', 'wb') as outfile:
+				pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)

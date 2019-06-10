@@ -19,6 +19,10 @@ def better_predictions(arr1, arr2, gt):
 	res = np.argwhere(np.logical_and(arr1 == gt, arr2 != gt))
 	return res
 
+def both_wrong(arr1, arr2, gt):
+	res = np.argwhere(np.logical_and(arr1 != gt, arr2 != gt))
+	return res
+
 # def graph_visualize(mat):
 
 if __name__ == "__main__":
@@ -64,13 +68,19 @@ if __name__ == "__main__":
 			pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
 
 	else:
-		results = better_predictions(all_arrays[1], all_arrays[0], all_arrays["ground_truth"])
-		print(results)
-		with open('results2.pkl', 'wb') as outfile:
-				pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
+		# results = better_predictions(all_arrays[1], all_arrays[0], all_arrays["ground_truth"])
+		# print(results)
+		# with open('results2.pkl', 'wb') as outfile:
+		# 		pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
 
-		results = better_predictions(all_arrays[0], all_arrays[1], all_arrays["ground_truth"])
-		np.save('went_wrong.npy', results)
+		# results = better_predictions(all_arrays[0], all_arrays[1], all_arrays["ground_truth"])
+		# np.save('went_wrong.npy', results)
+		# print(results)
+		# with open('results3.pkl', 'wb') as outfile:
+		# 		pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
+
+		results = both_wrong(all_arrays[1], all_arrays[0], all_arrays["ground_truth"])
+		np.save('both_wrong.npy', results)
 		print(results)
-		with open('results3.pkl', 'wb') as outfile:
+		with open('results4.pkl', 'wb') as outfile:
 				pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)

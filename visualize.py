@@ -48,24 +48,24 @@ if __name__ == "__main__":
 			targets = get_labels_from_csv(fn, targets_label)
 			all_arrays["ground_truth"] = targets
 
-		find_overlap = False
-		if find_overlap:
-			for i, (task1, arr1) in enumerate(all_arrays.items()):
-				for j, (task2, arr2) in enumerate(all_arrays.items()):
-					print(i, task1, " ... ", j, task2)
-					_, tpo, tno, fpo, fno = get_overlap(arr1, arr2)
-					results["true_positive_overlap"][i][j] = tpo
-					results["true_negative_overlap"][i][j] = tno
-					results["false_positive_overlap"][i][j] = fpo
-					results["false_negative_overlap"][i][j] = fno
+	find_overlap = False
+	if find_overlap:
+		for i, (task1, arr1) in enumerate(all_arrays.items()):
+			for j, (task2, arr2) in enumerate(all_arrays.items()):
+				print(i, task1, " ... ", j, task2)
+				_, tpo, tno, fpo, fno = get_overlap(arr1, arr2)
+				results["true_positive_overlap"][i][j] = tpo
+				results["true_negative_overlap"][i][j] = tno
+				results["false_positive_overlap"][i][j] = fpo
+				results["false_negative_overlap"][i][j] = fno
 
-			print(results)
-			with open('results.pkl', 'wb') as outfile:
+		print(results)
+		with open('results.pkl', 'wb') as outfile:
+			pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
+
+	else:
+		results = better_predictions(all_arrays[1], all_arrays[0], all_arrays["ground_truth"])
+		print(results)
+		with open('resutls2.pkl', 'wb') as outfile:
 				pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
-
-		else:
-			results = better_predictions(all_arrays[1], all_arrays[0], all_arrays["ground_truth"])
-			print(results)
-			with open('resutls2.pkl', 'wb') as outfile:
-					pickle.dump(results, outfile, protocol=pickle.HIGHEST_PROTOCOL)
 	

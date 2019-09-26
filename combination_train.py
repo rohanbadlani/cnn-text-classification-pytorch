@@ -108,9 +108,10 @@ def eval(data, model, args):
                 targets, predictions = targets.cpu().numpy(), predictions.cpu().numpy()
             all_targets = np.concatenate((all_targets, targets))
             all_preds = np.concatenate((all_preds, predictions))
-    
-    df = pd.DataFrame(data={"targets": all_targets, "predictions": all_preds})
-    df.to_csv(out_file)
+
+        if args.test:
+            df = pd.DataFrame(data={"targets": all_targets, "predictions": all_preds})
+            df.to_csv(out_file)
 
     avg_loss /= total
     accuracy = 100.0 * corrects/total

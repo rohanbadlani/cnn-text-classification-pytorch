@@ -36,8 +36,8 @@ parser.add_argument('-snapshot', type=str, default=None, help='filename of model
 parser.add_argument('-predict', type=str, default=None, help='predict the sentence given')
 parser.add_argument('-test', action='store_true', default=False, help='train or test')
 
-parser.add_argument('-num-tasks', type=int, default=2, help='number of tasks (default: 1 (sentiment))')
-parser.add_argument('-embedding_files', nargs='*', type=str, default=['./dev_sentiment_embeddings.npy', './dev_sarc_sentiment_ds_embeddings.npy'],
+parser.add_argument('-num-tasks', type=int, default=4, help='number of tasks (default: 1 (sentiment))')
+parser.add_argument('-embedding_files', nargs='*', type=str, default=['./dev_sentiment_embeddings.npy', './hate-yelp-test-embedding.npy', './test-yelp-humour-embedding.npy', './dev_sarc_sentiment_ds_embeddings.npy'],
                     help='path of the embedding files')
 #  './dev_sarc_sentiment_ds_embeddings.npy'
 # parser.add_argument('-embedding_file_2', type=str, default='./embeddings.npy', help='path of the second embedding file')
